@@ -64,10 +64,32 @@ struct pgm *read_pgm(char *filename)
 
 	// read image pixels
 	int *ptr = image->pixels;
-	while((c = fgetc(file_in)) != EOF) {
+	while ((c = fgetc(file_in)) != EOF) {
 	    *ptr++ = c;
 	}
 
 	fclose(file_in);
 	return image;
+}
+
+bool save_pgm(struct pgm *img, char *filename)
+{
+	FILE *file_out;
+	int *ptr;
+	int *end;
+
+	file_out = fopen(filename, "wb");
+	if (file_out == NULL)
+		return false;
+
+	fprintf(file_out, "P5\n%d %d\n%d\n", img->width, img->height, img->maxval);
+
+	ptr = img->pixels;
+	end = img->pixels + img->width * img->height;
+	while (ptr != end)
+		if (fputc(*ptr++, file_out) == EOF)
+			return false;
+
+	fclose(file_out);
+	return true;
 }

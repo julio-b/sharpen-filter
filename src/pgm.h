@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 struct pgm {
 	int width;
 	int height;
@@ -6,3 +8,4 @@ struct pgm {
 };
 
 struct pgm *read_pgm(char *filename);
+bool save_pgm(struct pgm *img, char *filename);

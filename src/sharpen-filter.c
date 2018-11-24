@@ -5,7 +5,7 @@
 int main(int argc, char **argv)
 {
 	struct pgm *img = read_pgm("../sample-imgs/baboon.bin.pgm");
-	if(img == NULL)
+	if (img == NULL)
 		return -1;
 
 	for (int i = 0; i < img->height; i++) {
@@ -14,6 +14,9 @@ int main(int argc, char **argv)
 		}
 		puts("\n");
 	}
+
+	if (!save_pgm(img, "/tmp/test.bin.pgm"))
+		return -2;
 
 	free(img);
 	return 0;
