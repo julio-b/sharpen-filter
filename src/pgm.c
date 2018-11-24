@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "pgm.h"
 
 #define BUFSIZE 30
@@ -71,6 +72,21 @@ struct pgm *read_pgm(char *filename)
 	fclose(file_in);
 	return image;
 }
+
+// Returns a deep copy of img
+struct pgm *copy_pgm(struct pgm *img)
+{
+	size_t img_size = pgm_buffer_size(img->width, img->height);
+	struct pgm *copyimg = (struct pgm *) malloc(img_size);
+
+	if (copyimg == NULL)
+		return NULL;
+	memcpy(copyimg, img, img_size);
+	copyimg->pixels = (int *) copyimg + sizeof(struct pgm);
+
+	return copyimg;
+}
+
 
 bool save_pgm(struct pgm *img, char *filename)
 {
