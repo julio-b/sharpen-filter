@@ -35,7 +35,7 @@ int pixel_sharpen_filter(struct pgm *img, int i, int j)
 	for (int q = 0; q < 9; q++)
 		sum += filter[q] * pixels_block[q];
 
-	return sum;
+	return sum < 0 ? 0 : sum > img->maxval ? img->maxval : sum;
 }
 
 // Apply pixel_sharpen_filter for every pixel of img
