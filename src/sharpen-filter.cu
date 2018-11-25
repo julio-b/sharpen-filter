@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "pgm.h"
+extern "C" {
+	#include "pgm.h"
+}
 
+__host__ __device__
 bool pixel_out_of_bounds(struct pgm *img, int i, int j)
 {
 	return i < 0 || j < 0 || i >= img->height || j >= img->width;
 }
 
+__host__ __device__
 int get_pixel_at(struct pgm *img, int i, int j)
 {
 	if (pixel_out_of_bounds(img, i, j))
@@ -14,6 +18,7 @@ int get_pixel_at(struct pgm *img, int i, int j)
 	return img->pixels[img->width * i + j];
 }
 
+__host__ __device__
 int pixel_sharpen_filter(struct pgm *img, int i, int j)
 {
 	int sum = 0;
@@ -38,7 +43,51 @@ int pixel_sharpen_filter(struct pgm *img, int i, int j)
 	return sum < 0 ? 0 : sum > img->maxval ? img->maxval : sum;
 }
 
+__host__
+struct pgm cuda_copy_pgm(struct pgm *img)
+{
+	size_t size = img->width * img->height * sizeof(int);
+	struct pgm cuda_img;
+
+	cuda_img.width = img->width;
+	cuda_img.height = img->height;
+	cuda_img.maxval = img->maxval;
+	cudaMalloc(&cuda_img.pixels, size);
+	if (cuda_img.pixels != NULL)
+		cudaMemcpy(cuda_img.pixels, img->pixels, size, cudaMemcpyHostToDevice);
+
+	return cuda_img;
+}
+
+__global__
+void sharpen_filter_kernel(struct pgm img, struct pgm original_img)
+{
+	int i = blockIdx.y * blockDim.y + threadIdx.y;
+	int j = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < img.height && j < img.width)
+		img.pixels[i * img.width + j] = pixel_sharpen_filter(&original_img, i, j);
+}
+
+__host__
+void sharpen_filter_cuda(struct pgm *img)
+{
+	struct pgm cuda_img = cuda_copy_pgm(img);
+	struct pgm cuda_original_img = cuda_copy_pgm(img);
+
+	dim3 dimBlock(32, 32);
+	dim3 dimGrid(img->width / dimBlock.x, img->height / dimBlock.y);
+	sharpen_filter_kernel<<<dimGrid, dimBlock>>>(cuda_img, cuda_original_img);
+
+	// copy result back to host
+	size_t size = img->width * img->height * sizeof(int);
+	cudaMemcpy(img->pixels, cuda_img.pixels, size, cudaMemcpyDeviceToHost);
+
+	cudaFree(cuda_img.pixels);
+	cudaFree(cuda_original_img.pixels);
+}
+
 // Apply pixel_sharpen_filter for every pixel of img
+__host__
 bool sharpen_filter(struct pgm *img)
 {
 	struct pgm *original_img = copy_pgm(img);
@@ -56,17 +105,26 @@ bool sharpen_filter(struct pgm *img)
 	return true;
 }
 
+
 int main(int argc, char **argv)
 {
 	struct pgm *img = read_pgm("../sample-imgs/baboon.bin.pgm");
 	if (img == NULL)
 		return -1;
 
+	struct pgm *cuda_img = copy_pgm(img);
+	if (cuda_img == NULL)
+		return -11;
+
+	sharpen_filter_cuda(cuda_img);
 	sharpen_filter(img);
 
 	if (!save_pgm(img, "/tmp/sharpen_baboon.bin.pgm"))
 		return -2;
+	if (!save_pgm(cuda_img, "/tmp/sharpen_baboon.cuda.bin.pgm"))
+		return -22;
 
 	free(img);
+	free(cuda_img);
 	return 0;
 }

@@ -1,32 +1,38 @@
-.PHONY : clean run
+.PHONY : clean run all build
 .DEFAULT_GOAL := run
 
-INCL   = 
-SRC    = pgm.c sharpen-filter.c
-OBJ    = $(SRC:.c=.o)
+SRC    = pgm.c
+CUSRC  = sharpen-filter.cu
+OBJ    = $(SRC:.c=.o) $(CUSRC:.cu=.o)
 LIBS   = 
 EXE    = sharpen-filter
 
-CC      = /usr/bin/gcc
-CFLAGS  = -Wall
+#CC      = /usr/bin/gcc
+CC      = /opt/cuda/bin/nvcc
+NVCC    = /opt/cuda/bin/nvcc
+#CFLAGS  = -Wall
+CFLAGS  = 
 LIBPATH = -L.
 LDFLAGS = -o $(EXE) $(LIBPATH) $(LIBS)
 CFDEBUG = -Wall -g -DDEBUG $(LDFLAGS)
 RM      = /bin/rm -f
+OUTIMGS = /tmp/sharpen_baboon.*.pgm
 
-%.o: %.c
-	$(CC) -c $(CFLAGS) $*.c
+all: build
+
+build: $(EXE)
 
 $(EXE): $(OBJ)
-	$(CC) $(LDFLAGS) $(OBJ)
+	$(NVCC) $(LDFLAGS) $+
 
-$(OBJ): $(INCL)
+%.o: %.cu
+	$(NVCC) -c $< -o $@
 
-debug:
-	$(CC) $(CFDEBUG) $(SRC)
+%.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
 
-run: $(EXE)
-	./$(EXE)
+run: build
+	./sharpen-filter && feh $(OUTIMGS)
 
 clean:
-	$(RM) $(OBJ) $(EXE) core a.out
+	$(RM) $(OBJ) $(EXE) $(OUTIMGS) core a.out
