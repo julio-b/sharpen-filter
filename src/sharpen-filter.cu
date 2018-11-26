@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <nvToolsExt.h>
 extern "C" {
 	#include "pgm.h"
 }
@@ -90,24 +91,29 @@ void sharpen_filter_cuda(struct pgm *img)
 __host__
 bool sharpen_filter(struct pgm *img)
 {
+	nvtxRangePush(__FUNCTION__);
 	struct pgm *original_img = copy_pgm(img);
 	if (original_img == NULL)
 		return false;
 
+	nvtxRangePush("cpu sharpen_filter algorithm");
 	for (int i = 0; i < img->height;  i++) {
 		for (int j = 0; j < img->width; j++) {
 			img->pixels[i * img->width + j] =
 				pixel_sharpen_filter(original_img, i, j);
 		}
 	}
+	nvtxRangePop();
 
 	free(original_img);
+	nvtxRangePop();
 	return true;
 }
 
 
 int main(int argc, char **argv)
 {
+	nvtxRangePush(__FUNCTION__);
 	struct pgm *img = read_pgm("../sample-imgs/baboon.bin.pgm");
 	if (img == NULL)
 		return -1;
@@ -126,5 +132,6 @@ int main(int argc, char **argv)
 
 	free(img);
 	free(cuda_img);
+	nvtxRangePop();
 	return 0;
 }

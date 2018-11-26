@@ -1,10 +1,10 @@
 .PHONY : clean run all build
-.DEFAULT_GOAL := run
+.DEFAULT_GOAL := nvprof
 
 SRC    = pgm.c
 CUSRC  = sharpen-filter.cu
 OBJ    = $(SRC:.c=.o) $(CUSRC:.cu=.o)
-LIBS   = 
+LIBS   = -lnvToolsExt
 EXE    = sharpen-filter
 
 #CC      = /usr/bin/gcc
@@ -12,7 +12,7 @@ CC      = /opt/cuda/bin/nvcc
 NVCC    = /opt/cuda/bin/nvcc
 #CFLAGS  = -Wall
 CFLAGS  = 
-LIBPATH = -L.
+LIBPATH = -L. -L/opt/cuda/lib64
 LDFLAGS = -o $(EXE) $(LIBPATH) $(LIBS)
 CFDEBUG = -Wall -g -DDEBUG $(LDFLAGS)
 RM      = /bin/rm -f
@@ -32,7 +32,10 @@ $(EXE): $(OBJ)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 run: build
-	./sharpen-filter && feh $(OUTIMGS)
+	./$(EXE) && feh $(OUTIMGS)
+
+nvprof: build
+	nvprof ./$(EXE)
 
 clean:
 	$(RM) $(OBJ) $(EXE) $(OUTIMGS) core a.out

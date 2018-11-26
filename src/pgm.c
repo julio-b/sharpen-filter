@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <nvToolsExt.h>
 #include "pgm.h"
 
 #define BUFSIZE 30
+
+// malloc and memcpy wrappers for nvprof
+void *nmalloc(size_t size);
+void *nmemcpy(void *dest, const void *src, size_t n);
 
 int fgetint_ascii(FILE *file)
 {
@@ -27,6 +32,7 @@ size_t pgm_buffer_size(int width, int height)
 
 struct pgm *read_pgm(char *filename)
 {
+	nvtxRangePush(__FUNCTION__);
 	FILE *file_in;
 	int width;
 	int height;
@@ -54,7 +60,7 @@ struct pgm *read_pgm(char *filename)
 	height = fgetint_ascii(file_in);
 	maxval = fgetint_ascii(file_in);
 
-	image = (struct pgm *) malloc(pgm_buffer_size(width, height));
+	image = (struct pgm *) nmalloc(pgm_buffer_size(width, height));
 	if (image == NULL)
 		return NULL;
 
@@ -70,26 +76,30 @@ struct pgm *read_pgm(char *filename)
 	}
 
 	fclose(file_in);
+	nvtxRangePop();
 	return image;
 }
 
 // Returns a deep copy of img
 struct pgm *copy_pgm(struct pgm *img)
 {
+	nvtxRangePush(__FUNCTION__);
 	size_t img_size = pgm_buffer_size(img->width, img->height);
-	struct pgm *copyimg = (struct pgm *) malloc(img_size);
+	struct pgm *copyimg = (struct pgm *) nmalloc(img_size);
 
 	if (copyimg == NULL)
 		return NULL;
-	memcpy(copyimg, img, img_size);
+	nmemcpy(copyimg, img, img_size);
 	copyimg->pixels = (int *) copyimg + sizeof(struct pgm);
 
+	nvtxRangePop();
 	return copyimg;
 }
 
 
 bool save_pgm(struct pgm *img, char *filename)
 {
+	nvtxRangePush(__FUNCTION__);
 	FILE *file_out;
 	int *ptr;
 	int *end;
@@ -107,5 +117,23 @@ bool save_pgm(struct pgm *img, char *filename)
 			return false;
 
 	fclose(file_out);
+	nvtxRangePop();
 	return true;
+}
+
+void *nmalloc(size_t size)
+{
+	nvtxRangePush("cpu malloc");
+	void *p = malloc(size);
+	nvtxRangePop();
+	return p;
+}
+
+void *nmemcpy(void *dest, const void *src, size_t n)
+{
+	nvtxRangePush("cpu memcpy");
+	void *p = memcpy(dest, src, n);
+	nvtxRangePop();
+	return p;
+
 }
