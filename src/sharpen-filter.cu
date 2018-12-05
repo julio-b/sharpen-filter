@@ -89,14 +89,13 @@ void sharpen_filter_on_gpu(struct pgm *img)
 
 // Apply pixel_sharpen_filter for every pixel of img
 __host__
-bool sharpen_filter_on_cpu(struct pgm *img)
+void sharpen_filter_on_cpu(struct pgm *img)
 {
-	nvtxRangePush(__FUNCTION__);
 	struct pgm *original_img = copy_pgm(img);
 	if (original_img == NULL)
-		return false;
+		return;
 
-	nvtxRangePush("cpu sharpen_filter algorithm");
+	nvtxRangePush(__FUNCTION__);
 	for (int i = 0; i < img->height;  i++) {
 		for (int j = 0; j < img->width; j++) {
 			img->pixels[i * img->width + j] =
@@ -106,8 +105,6 @@ bool sharpen_filter_on_cpu(struct pgm *img)
 	nvtxRangePop();
 
 	free(original_img);
-	nvtxRangePop();
-	return true;
 }
 
 
