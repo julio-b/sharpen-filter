@@ -48,16 +48,16 @@ __host__
 struct pgm copy_pgm_to_gpu(struct pgm *img)
 {
 	size_t size = img->width * img->height * sizeof(int);
-	struct pgm cuda_img;
+	struct pgm gpu_img;
 
-	cuda_img.width = img->width;
-	cuda_img.height = img->height;
-	cuda_img.maxval = img->maxval;
-	cudaMalloc(&cuda_img.pixels, size);
-	if (cuda_img.pixels != NULL)
-		cudaMemcpy(cuda_img.pixels, img->pixels, size, cudaMemcpyHostToDevice);
+	gpu_img.width = img->width;
+	gpu_img.height = img->height;
+	gpu_img.maxval = img->maxval;
+	cudaMalloc(&gpu_img.pixels, size);
+	if (gpu_img.pixels != NULL)
+		cudaMemcpy(gpu_img.pixels, img->pixels, size, cudaMemcpyHostToDevice);
 
-	return cuda_img;
+	return gpu_img;
 }
 
 __global__
@@ -72,19 +72,19 @@ void sharpen_filter_kernel(struct pgm img, struct pgm original_img)
 __host__
 void sharpen_filter_on_gpu(struct pgm *img)
 {
-	struct pgm cuda_img = copy_pgm_to_gpu(img);
-	struct pgm cuda_original_img = copy_pgm_to_gpu(img);
+	struct pgm gpu_img = copy_pgm_to_gpu(img);
+	struct pgm gpu_original_img = copy_pgm_to_gpu(img);
 
 	dim3 dimBlock(32, 32);
 	dim3 dimGrid(img->width / dimBlock.x, img->height / dimBlock.y);
-	sharpen_filter_kernel<<<dimGrid, dimBlock>>>(cuda_img, cuda_original_img);
+	sharpen_filter_kernel<<<dimGrid, dimBlock>>>(gpu_img, gpu_original_img);
 
 	// copy result back to host
 	size_t size = img->width * img->height * sizeof(int);
-	cudaMemcpy(img->pixels, cuda_img.pixels, size, cudaMemcpyDeviceToHost);
+	cudaMemcpy(img->pixels, gpu_img.pixels, size, cudaMemcpyDeviceToHost);
 
-	cudaFree(cuda_img.pixels);
-	cudaFree(cuda_original_img.pixels);
+	cudaFree(gpu_img.pixels);
+	cudaFree(gpu_original_img.pixels);
 }
 
 // Apply pixel_sharpen_filter for every pixel of img
