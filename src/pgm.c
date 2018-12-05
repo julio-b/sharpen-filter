@@ -1,15 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <string.h>
 #include <nvToolsExt.h>
 #include "pgm.h"
+#include "utils.h"
 
 #define BUFSIZE 30
-
-// malloc and memcpy wrappers for nvprof
-void *nmalloc(size_t size);
-void *nmemcpy(void *dest, const void *src, size_t n);
 
 int fgetint_ascii(FILE *file)
 {
@@ -119,21 +115,4 @@ bool save_pgm(struct pgm *img, char *filename)
 	fclose(file_out);
 	nvtxRangePop();
 	return true;
-}
-
-void *nmalloc(size_t size)
-{
-	nvtxRangePush("cpu malloc");
-	void *p = malloc(size);
-	nvtxRangePop();
-	return p;
-}
-
-void *nmemcpy(void *dest, const void *src, size_t n)
-{
-	nvtxRangePush("cpu memcpy");
-	void *p = memcpy(dest, src, n);
-	nvtxRangePop();
-	return p;
-
 }

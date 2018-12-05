@@ -1,7 +1,7 @@
 .PHONY : clean run all build
 .DEFAULT_GOAL := nvprof
 
-SRC    = pgm.c
+SRC    = pgm.c utils.c
 CUSRC  = sharpen-filter.cu
 OBJ    = $(SRC:.c=.o) $(CUSRC:.cu=.o)
 LIBS   = -lnvToolsExt
