@@ -38,10 +38,10 @@ struct pgm *read_pgm(char *filename)
 
 	file_in = fopen(filename, "rb");
 	if (file_in == NULL)
-		EXIT_WITH_ERR_MSG("Couldn't open pgm image file");
+		EXIT_WITH_ERR_MSG("Couldn't open pgm image file\n");
 
 	if (fgetc(file_in) != 'P' || fgetc(file_in) != '5')
-		EXIT_WITH_ERR_MSG("Wrong file format");
+		EXIT_WITH_ERR_MSG("Wrong file format\n");
 
 	fgetc(file_in); // whitespace
 
@@ -58,7 +58,7 @@ struct pgm *read_pgm(char *filename)
 
 	image = (struct pgm *) nmalloc(pgm_buffer_size(width, height));
 	if (image == NULL)
-		EXIT_WITH_ERR_MSG("Out of memory, cpu malloc failed");
+		EXIT_WITH_ERR_MSG("Out of memory, cpu malloc failed\n");
 
 	image->width = width;
 	image->height = height;
@@ -84,7 +84,7 @@ struct pgm *copy_pgm(struct pgm *img)
 
 	struct pgm *copyimg = (struct pgm *) nmalloc(img_size);
 	if (copyimg == NULL)
-		EXIT_WITH_ERR_MSG("Out of memory, cpu malloc failed");
+		EXIT_WITH_ERR_MSG("Out of memory, cpu malloc failed\n");
 
 	nmemcpy(copyimg, img, img_size);
 	copyimg->pixels = (int *) copyimg + sizeof(struct pgm);
@@ -103,7 +103,7 @@ bool save_pgm(struct pgm *img, char *filename)
 
 	file_out = fopen(filename, "wb");
 	if (file_out == NULL) {
-		fprintf(stderr, "Warning: Couldn't open output file");
+		fprintf(stderr, "Warning: Couldn't open output file\n");
 		return false;
 	}
 
@@ -113,7 +113,7 @@ bool save_pgm(struct pgm *img, char *filename)
 	end = img->pixels + img->width * img->height;
 	while (ptr != end) {
 		if (fputc(*ptr++, file_out) == EOF) {
-			fprintf(stderr, "Warning: Couldn't write output file");
+			fprintf(stderr, "Warning: Couldn't write output file\n");
 			return false;
 		}
 	}
