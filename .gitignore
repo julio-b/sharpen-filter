@@ -1,3 +1,4 @@
 DMPS-2018-Project1.*
 *.o
 sharpen-filter
+src/baboon_sharpen*
