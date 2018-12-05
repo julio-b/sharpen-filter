@@ -109,14 +109,14 @@ void sharpen_filter_on_cpu(struct pgm *img)
 int main(int argc, char **argv)
 {
 	nvtxRangePush(__FUNCTION__);
-	struct pgm *img = read_pgm("../sample-imgs/baboon.bin.pgm");
+	struct pgm *img = read_pgm("baboon.bin.pgm");
 	struct pgm *cuda_img = copy_pgm(img);
 
 	sharpen_filter_on_gpu(cuda_img);
-	save_pgm(cuda_img, "/tmp/sharpen_baboon.cuda.bin.pgm");
+	save_pgm(cuda_img, "baboon_sharpen.cuda.bin.pgm");
 
 	sharpen_filter_on_cpu(img);
-	save_pgm(img, "/tmp/sharpen_baboon.bin.pgm");
+	save_pgm(img, "baboon_sharpen.bin.pgm");
 
 	free(img);
 	free(cuda_img);

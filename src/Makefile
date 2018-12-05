@@ -16,7 +16,7 @@ LIBPATH = -L. -L/opt/cuda/lib64
 LDFLAGS = -o $(EXE) $(LIBPATH) $(LIBS)
 CFDEBUG = -Wall -g -DDEBUG $(LDFLAGS)
 RM      = /bin/rm -f
-OUTIMGS = /tmp/sharpen_baboon.*.pgm
+OUTIMGS = baboon_sharpen.*.pgm
 
 all: build
 
