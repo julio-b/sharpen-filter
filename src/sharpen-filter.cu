@@ -45,7 +45,7 @@ int pixel_sharpen_filter(struct pgm *img, int i, int j)
 }
 
 __host__
-struct pgm cuda_copy_pgm(struct pgm *img)
+struct pgm copy_pgm_to_gpu(struct pgm *img)
 {
 	size_t size = img->width * img->height * sizeof(int);
 	struct pgm cuda_img;
@@ -70,10 +70,10 @@ void sharpen_filter_kernel(struct pgm img, struct pgm original_img)
 }
 
 __host__
-void sharpen_filter_cuda(struct pgm *img)
+void sharpen_filter_on_gpu(struct pgm *img)
 {
-	struct pgm cuda_img = cuda_copy_pgm(img);
-	struct pgm cuda_original_img = cuda_copy_pgm(img);
+	struct pgm cuda_img = copy_pgm_to_gpu(img);
+	struct pgm cuda_original_img = copy_pgm_to_gpu(img);
 
 	dim3 dimBlock(32, 32);
 	dim3 dimGrid(img->width / dimBlock.x, img->height / dimBlock.y);
@@ -89,7 +89,7 @@ void sharpen_filter_cuda(struct pgm *img)
 
 // Apply pixel_sharpen_filter for every pixel of img
 __host__
-bool sharpen_filter(struct pgm *img)
+bool sharpen_filter_on_cpu(struct pgm *img)
 {
 	nvtxRangePush(__FUNCTION__);
 	struct pgm *original_img = copy_pgm(img);
@@ -122,8 +122,8 @@ int main(int argc, char **argv)
 	if (cuda_img == NULL)
 		return -11;
 
-	sharpen_filter_cuda(cuda_img);
-	sharpen_filter(img);
+	sharpen_filter_on_gpu(cuda_img);
+	sharpen_filter_on_cpu(img);
 
 	if (!save_pgm(img, "/tmp/sharpen_baboon.bin.pgm"))
 		return -2;
