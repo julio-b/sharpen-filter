@@ -92,8 +92,6 @@ __host__
 void sharpen_filter_on_cpu(struct pgm *img)
 {
 	struct pgm *original_img = copy_pgm(img);
-	if (original_img == NULL)
-		return;
 
 	nvtxRangePush(__FUNCTION__);
 	for (int i = 0; i < img->height;  i++) {
@@ -112,20 +110,13 @@ int main(int argc, char **argv)
 {
 	nvtxRangePush(__FUNCTION__);
 	struct pgm *img = read_pgm("../sample-imgs/baboon.bin.pgm");
-	if (img == NULL)
-		return -1;
-
 	struct pgm *cuda_img = copy_pgm(img);
-	if (cuda_img == NULL)
-		return -11;
 
 	sharpen_filter_on_gpu(cuda_img);
-	sharpen_filter_on_cpu(img);
+	save_pgm(cuda_img, "/tmp/sharpen_baboon.cuda.bin.pgm");
 
-	if (!save_pgm(img, "/tmp/sharpen_baboon.bin.pgm"))
-		return -2;
-	if (!save_pgm(cuda_img, "/tmp/sharpen_baboon.cuda.bin.pgm"))
-		return -22;
+	sharpen_filter_on_cpu(img);
+	save_pgm(img, "/tmp/sharpen_baboon.bin.pgm");
 
 	free(img);
 	free(cuda_img);
