@@ -2,7 +2,6 @@
 #define PGM_H
 
 #include <stdbool.h>
-#include <stdlib.h>
 
 struct pgm {
 	int width;

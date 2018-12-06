@@ -34,6 +34,7 @@ struct pgm *read_pgm(char *filename)
 	int height;
 	int maxval;
 	struct pgm *image = NULL;
+	int *ptr;
 	int c;
 
 	file_in = fopen(filename, "rb");
@@ -66,7 +67,7 @@ struct pgm *read_pgm(char *filename)
 	image->pixels = (int *) image + sizeof(struct pgm);
 
 	// read image pixels
-	int *ptr = image->pixels;
+	ptr = image->pixels;
 	while ((c = fgetc(file_in)) != EOF) {
 	    *ptr++ = c;
 	}

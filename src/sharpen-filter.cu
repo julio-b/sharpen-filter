@@ -65,6 +65,7 @@ void sharpen_filter_kernel(struct pgm img, struct pgm original_img)
 {
 	int i = blockIdx.y * blockDim.y + threadIdx.y;
 	int j = blockIdx.x * blockDim.x + threadIdx.x;
+
 	if (i < img.height && j < img.width)
 		img.pixels[i * img.width + j] = pixel_sharpen_filter(&original_img, i, j);
 }
@@ -96,15 +97,13 @@ void sharpen_filter_on_cpu(struct pgm *img)
 	nvtxRangePush(__FUNCTION__);
 	for (int i = 0; i < img->height;  i++) {
 		for (int j = 0; j < img->width; j++) {
-			img->pixels[i * img->width + j] =
-				pixel_sharpen_filter(original_img, i, j);
+			img->pixels[i * img->width + j] = pixel_sharpen_filter(original_img, i, j);
 		}
 	}
 	nvtxRangePop();
 
 	free(original_img);
 }
-
 
 int main(int argc, char **argv)
 {
